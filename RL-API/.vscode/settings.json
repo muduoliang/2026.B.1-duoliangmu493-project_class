@@ -1,0 +1,5 @@
+{
+    "cmake.sourceDirectory": "E:/project-study/project1-LLM_traffic/RL-2/cityflow-github/CityFlow",
+    "python-envs.defaultEnvManager": "ms-python.python:conda",
+    "python-envs.defaultPackageManager": "ms-python.python:conda"
+}

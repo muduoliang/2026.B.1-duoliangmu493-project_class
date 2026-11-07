@@ -1,0 +1,49 @@
+# =============================================================================
+# 论文《城市交通信号控制大语言模型方法研究与系统实现》
+# 第四章 4.2 节「融合邻居信息的动态交通信号控制强化学习辅助模型（Our RL）」
+# 复现工程依赖清单（Ubuntu / WSL2 + conda 环境 cityflow）
+#
+# 安装：
+#     source /home/mdy493/cityflow/bin/activate     # 激活 conda 环境
+#     pip install -r requirements.txt
+#
+# 说明：
+#   1) CityFlow 仿真器不在 PyPI 常规发布渠道，必须源码编译，见下方注释与 readme.md；
+#      编译产物是名为 cityflow 的 Python 扩展模块（import cityflow）。
+#   2) 训练与指标计算只用 numpy + torch + cityflow；matplotlib 仅用于
+#      plot_metrics.py 生成训练曲线图与测试评估图（不装也能完成训练，只是不出图）。
+#   3) 论文原文环境：Python 3.10 + PyTorch 2.4.0 + CityFlow 0.1（2 × A100 80G）。
+#      本工程在 Python 3.8 ~ 3.12 + PyTorch 2.4.x 上实测可用（CPU/GPU 均可）。
+# =============================================================================
+
+# ---- 数值计算 ----
+# 回放池、状态向量、指标统计均为 numpy 实现；torch 2.4 建议搭配 numpy 1.x
+numpy>=1.23,<2.0
+
+# ---- 深度学习框架 ----
+# 若本机 CUDA 版本不同，请按官方指引安装对应的 torch 轮子：
+#   pip install torch --index-url https://download.pytorch.org/whl/cu121
+# 纯 CPU 环境同样可跑（train_rl_aux.py 会自动选择 device）：
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+torch>=2.0
+
+# ---- 绘图（训练过程曲线 + 测试评估图；仅 plot_metrics.py 使用）----
+# 无界面环境（WSL/服务器）下 plot_metrics.py 自动使用 Agg 后端，无需 X11。
+# 中文标签需要中文字体，WSL 下会自动尝试注册 /mnt/c/Windows/Fonts/msyh.ttc，
+# 若仍找不到会自动改用英文标签；也可手动安装：
+#   sudo apt install -y fonts-noto-cjk fonts-wqy-zenhei
+matplotlib>=3.5
+
+# ---- 交通仿真器（需源码编译，故此处注释；编译步骤见 readme.md 第 2 节）----
+# cityflow
+#
+# Ubuntu / WSL2 源码编译步骤：
+#   sudo apt update && sudo apt install -y build-essential cmake
+#   git clone https://github.com/cityflow-project/CityFlow.git
+#   cd CityFlow
+#   git submodule update --init --recursive     # 拉取 pybind11 / rapidjson 子模块（必需）
+#   pip install .                               # 在 conda 环境 cityflow 内执行
+#   python -c "import cityflow; print(cityflow.__version__)"
+#
+# 验证方式：python tools/selfcheck.py 的 [数据解析] 与 [网络] 组无 cityflow 也能跑；
+#          只有 train_rl_aux.py 的真实仿真必须装好 cityflow。

@@ -1,0 +1,190 @@
+{
+  "format": "rl_aux_frozen/v1",
+  "paper_section": "第四章 4.2 节 融合邻居信息的动态交通信号控制强化学习辅助模型（Our RL）",
+  "created_at": "2026-10-27T12:11:16",
+  "frozen_file": {
+    "path": "E:\\project-study\\project1-LLM_traffic\\RL-firture\\output\\rl_model\\frozen\\rl_aux_frozen.pth",
+    "sha256": "d4b4dd229b53232fb2d361ad8e2895e059fb9742ee1c326d943fc3db40ac8a66",
+    "bytes": 2187301
+  },
+  "source": {
+    "checkpoint": "E:\\project-study\\project1-LLM_traffic\\RL-firture\\output\\rl_model\\dqn_rl_aux_best.pth",
+    "checkpoint_sha256": "0ab94f6da4cc5483f71c793806aff2fffe9fbd168c6cb9d414de092a042607c5",
+    "trained_episode": 99,
+    "grad_updates": 9900,
+    "decisions": 381459,
+    "best_eval_att": 298.22762319812267
+  },
+  "network": {
+    "param_count": 540684,
+    "param_sha256": "6218c9ae652e5634a1c289b0185a7cc112a8d3f859710a7c07e61b090b0b2932",
+    "state_dim_max": 69,
+    "n_selectable_phases_max": 4,
+    "n_duration_actions": 7,
+    "neighbor_degree_max": 4,
+    "n_rel_pos_classes": 4,
+    "n_rel_class_groups": 2,
+    "hidden_dim": 128,
+    "n_heads": 8,
+    "n_self_attn_layers": 2
+  },
+  "data_fingerprint": {
+    "data_dir": "E:\\project-study\\project1-LLM_traffic\\RL-firture\\data",
+    "files": [
+      {
+        "name": "roadnet",
+        "file": "roadnet_4X4.json",
+        "sha256": "ec5a01c2aeb2cc1337e5d53948a012eb01e4c4ba351bae75aa30bfdf247d294e",
+        "bytes": 882729
+      },
+      {
+        "name": "flow",
+        "file": "flow.json",
+        "sha256": "e2b6103f54e7afd0a32770afc2d2634d0bd1f2c5088634afb6ac49d4a0a078be",
+        "bytes": 902183
+      },
+      {
+        "name": "signal:signal_inter_intersection_1_1.txt",
+        "file": "signal_inter_intersection_1_1.txt",
+        "sha256": "d3b3456a8e38c096ca6ca4ea9976a1e8221bfeb85dcf571a4308f97dab0217e4",
+        "bytes": 4209
+      },
+      {
+        "name": "signal:signal_inter_intersection_1_2.txt",
+        "file": "signal_inter_intersection_1_2.txt",
+        "sha256": "d3b3456a8e38c096ca6ca4ea9976a1e8221bfeb85dcf571a4308f97dab0217e4",
+        "bytes": 4209
+      },
+      {
+        "name": "signal:signal_inter_intersection_1_3.txt",
+        "file": "signal_inter_intersection_1_3.txt",
+        "sha256": "d3b3456a8e38c096ca6ca4ea9976a1e8221bfeb85dcf571a4308f97dab0217e4",
+        "bytes": 4209
+      },
+      {
+        "name": "signal:signal_inter_intersection_1_4.txt",
+        "file": "signal_inter_intersection_1_4.txt",
+        "sha256": "d3b3456a8e38c096ca6ca4ea9976a1e8221bfeb85dcf571a4308f97dab0217e4",
+        "bytes": 4209
+      },
+      {
+        "name": "signal:signal_inter_intersection_2_1.txt",
+        "file": "signal_inter_intersection_2_1.txt",
+        "sha256": "d3b3456a8e38c096ca6ca4ea9976a1e8221bfeb85dcf571a4308f97dab0217e4",
+        "bytes": 4209
+      },
+      {
+        "name": "signal:signal_inter_intersection_2_2.txt",
+        "file": "signal_inter_intersection_2_2.txt",
+        "sha256": "d3b3456a8e38c096ca6ca4ea9976a1e8221bfeb85dcf571a4308f97dab0217e4",
+        "bytes": 4209
+      },
+      {
+        "name": "signal:signal_inter_intersection_2_3.txt",
+        "file": "signal_inter_intersection_2_3.txt",
+        "sha256": "d3b3456a8e38c096ca6ca4ea9976a1e8221bfeb85dcf571a4308f97dab0217e4",
+        "bytes": 4209
+      },
+      {
+        "name": "signal:signal_inter_intersection_2_4.txt",
+        "file": "signal_inter_intersection_2_4.txt",
+        "sha256": "d3b3456a8e38c096ca6ca4ea9976a1e8221bfeb85dcf571a4308f97dab0217e4",
+        "bytes": 4209
+      },
+      {
+        "name": "signal:signal_inter_intersection_3_1.txt",
+        "file": "signal_inter_intersection_3_1.txt",
+        "sha256": "d3b3456a8e38c096ca6ca4ea9976a1e8221bfeb85dcf571a4308f97dab0217e4",
+        "bytes": 4209
+      },
+      {
+        "name": "signal:signal_inter_intersection_3_2.txt",
+        "file": "signal_inter_intersection_3_2.txt",
+        "sha256": "d3b3456a8e38c096ca6ca4ea9976a1e8221bfeb85dcf571a4308f97dab0217e4",
+        "bytes": 4209
+      },
+      {
+        "name": "signal:signal_inter_intersection_3_3.txt",
+        "file": "signal_inter_intersection_3_3.txt",
+        "sha256": "d3b3456a8e38c096ca6ca4ea9976a1e8221bfeb85dcf571a4308f97dab0217e4",
+        "bytes": 4209
+      },
+      {
+        "name": "signal:signal_inter_intersection_3_4.txt",
+        "file": "signal_inter_intersection_3_4.txt",
+        "sha256": "d3b3456a8e38c096ca6ca4ea9976a1e8221bfeb85dcf571a4308f97dab0217e4",
+        "bytes": 4209
+      },
+      {
+        "name": "signal:signal_inter_intersection_4_1.txt",
+        "file": "signal_inter_intersection_4_1.txt",
+        "sha256": "d3b3456a8e38c096ca6ca4ea9976a1e8221bfeb85dcf571a4308f97dab0217e4",
+        "bytes": 4209
+      },
+      {
+        "name": "signal:signal_inter_intersection_4_2.txt",
+        "file": "signal_inter_intersection_4_2.txt",
+        "sha256": "d3b3456a8e38c096ca6ca4ea9976a1e8221bfeb85dcf571a4308f97dab0217e4",
+        "bytes": 4209
+      },
+      {
+        "name": "signal:signal_inter_intersection_4_3.txt",
+        "file": "signal_inter_intersection_4_3.txt",
+        "sha256": "d3b3456a8e38c096ca6ca4ea9976a1e8221bfeb85dcf571a4308f97dab0217e4",
+        "bytes": 4209
+      },
+      {
+        "name": "signal:signal_inter_intersection_4_4.txt",
+        "file": "signal_inter_intersection_4_4.txt",
+        "sha256": "d3b3456a8e38c096ca6ca4ea9976a1e8221bfeb85dcf571a4308f97dab0217e4",
+        "bytes": 4209
+      }
+    ],
+    "combined_sha256": "1de13e51362e08f58254117d25fec3e982d4d6cd8809e6a2d83c3c57d10da687"
+  },
+  "verification": {
+    "dims_match_data": true,
+    "state_dict_roundtrip": true,
+    "forward_finite": true,
+    "forward_deterministic": true,
+    "no_trainable_params": true,
+    "shapes": {
+      "phase_q": [
+        3,
+        4
+      ],
+      "duration_q": [
+        3,
+        7
+      ],
+      "os_y": [
+        3,
+        128
+      ],
+      "nbr_weights": [
+        3,
+        4
+      ]
+    },
+    "dims_expected_from_data": {
+      "state_dim_max": 69,
+      "n_rel_pos_classes": 4,
+      "n_rel_class_groups": 2,
+      "n_selectable_phases_max": 4,
+      "n_duration_actions": 7,
+      "neighbor_degree_max": 4
+    }
+  },
+  "environment": {
+    "python": "3.8.20",
+    "torch": "2.4.1+cu121",
+    "platform": "Windows-10-10.0.26200-SP0"
+  },
+  "torchscript": null,
+  "how_to_use": [
+    "python rl_aux_infer.py --selftest          # 先自检冻结包（不需要 CityFlow）",
+    "python rl_aux_infer.py --demo --steps 3    # 在真实 CityFlow 上跑几步",
+    "python deepseek_agent.py                   # 交给 DeepSeek 工具调用"
+  ],
+  "notice": "冻结包只用于推理；不要再用它继续训练（训练请回到 train_rl_aux.py 的原始权重）。"
+}

@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-10-15 22:12:33",
+  "paper_section": "第四章 4.2 节 融合邻居信息的动态交通信号控制强化学习算法（Our RL）",
+  "font_used": "Microsoft YaHei",
+  "figure_format": "png",
+  "figures": {
+    "training_curves": "E:\\project-study\\project1-LLM_traffic\\RL-2\\output\\_smoke\\figures\\training_curves.png",
+    "training_curve_reward": "E:\\project-study\\project1-LLM_traffic\\RL-2\\output\\_smoke\\figures\\training_curve_reward.png",
+    "training_curve_delay": "E:\\project-study\\project1-LLM_traffic\\RL-2\\output\\_smoke\\figures\\training_curve_delay.png",
+    "training_curve_queue": "E:\\project-study\\project1-LLM_traffic\\RL-2\\output\\_smoke\\figures\\training_curve_queue.png",
+    "training_curve_throughput": "E:\\project-study\\project1-LLM_traffic\\RL-2\\output\\_smoke\\figures\\training_curve_throughput.png",
+    "eval_timeseries": "E:\\project-study\\project1-LLM_traffic\\RL-2\\output\\_smoke\\figures\\eval_timeseries.png",
+    "eval_boxplot": "E:\\project-study\\project1-LLM_traffic\\RL-2\\output\\_smoke\\figures\\eval_boxplot.png",
+    "eval_bar": "E:\\project-study\\project1-LLM_traffic\\RL-2\\output\\_smoke\\figures\\eval_bar.png",
+    "eval_cdf": "E:\\project-study\\project1-LLM_traffic\\RL-2\\output\\_smoke\\figures\\eval_cdf.png"
+  },
+  "data_sources": {
+    "train_log": "E:\\project-study\\project1-LLM_traffic\\RL-2\\output\\_smoke\\logs\\train_log.csv",
+    "eval_log": "E:\\project-study\\project1-LLM_traffic\\RL-2\\output\\_smoke\\logs\\eval_log.csv",
+    "series_dir": "E:\\project-study\\project1-LLM_traffic\\RL-2\\output\\_smoke\\logs\\series",
+    "run_report": "E:\\project-study\\project1-LLM_traffic\\RL-2\\output\\_smoke\\reports\\run_report.json"
+  },
+  "note": "所有曲线均来自上述真实运行产物；本模块不生成任何虚构/占位数据。",
+  "missing_sources": []
+}

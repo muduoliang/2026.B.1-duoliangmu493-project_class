@@ -1,0 +1,646 @@
+{
+  "data_dir": "E:\\project-study\\project1-LLM_traffic\\RL-2\\data",
+  "data_files": [
+    {
+      "name": "flow.json",
+      "size": 902183
+    },
+    {
+      "name": "roadnet_4X4.json",
+      "size": 882729
+    },
+    {
+      "name": "signal_inter_intersection_1_1.txt",
+      "size": 4209
+    },
+    {
+      "name": "signal_inter_intersection_1_2.txt",
+      "size": 4209
+    },
+    {
+      "name": "signal_inter_intersection_1_3.txt",
+      "size": 4209
+    },
+    {
+      "name": "signal_inter_intersection_1_4.txt",
+      "size": 4209
+    },
+    {
+      "name": "signal_inter_intersection_2_1.txt",
+      "size": 4209
+    },
+    {
+      "name": "signal_inter_intersection_2_2.txt",
+      "size": 4209
+    },
+    {
+      "name": "signal_inter_intersection_2_3.txt",
+      "size": 4209
+    },
+    {
+      "name": "signal_inter_intersection_2_4.txt",
+      "size": 4209
+    },
+    {
+      "name": "signal_inter_intersection_3_1.txt",
+      "size": 4209
+    },
+    {
+      "name": "signal_inter_intersection_3_2.txt",
+      "size": 4209
+    },
+    {
+      "name": "signal_inter_intersection_3_3.txt",
+      "size": 4209
+    },
+    {
+      "name": "signal_inter_intersection_3_4.txt",
+      "size": 4209
+    },
+    {
+      "name": "signal_inter_intersection_4_1.txt",
+      "size": 4209
+    },
+    {
+      "name": "signal_inter_intersection_4_2.txt",
+      "size": 4209
+    },
+    {
+      "name": "signal_inter_intersection_4_3.txt",
+      "size": 4209
+    },
+    {
+      "name": "signal_inter_intersection_4_4.txt",
+      "size": 4209
+    }
+  ],
+  "roadnet_file": "roadnet_4X4.json",
+  "flow_file": "flow.json",
+  "n_signal_plan_files": 16,
+  "roadnet_fields": {
+    "top_level_keys": [
+      "intersections",
+      "roads"
+    ],
+    "n_intersections": 32,
+    "n_controlled_intersections": 16,
+    "n_virtual_intersections": 16,
+    "n_roads": 80,
+    "intersection_keys": [
+      "id",
+      "point",
+      "roadLinks",
+      "roads",
+      "trafficLight",
+      "virtual",
+      "width"
+    ],
+    "road_keys": [
+      "endIntersection",
+      "id",
+      "lanes",
+      "points",
+      "startIntersection"
+    ],
+    "lane_keys": [
+      "maxSpeed",
+      "width"
+    ],
+    "roadLink_keys": [
+      "direction",
+      "endRoad",
+      "laneLinks",
+      "startRoad",
+      "type"
+    ],
+    "trafficLight_keys": [
+      "lightphases",
+      "roadLinkIndices"
+    ],
+    "lightphase_keys": [
+      "availableRoadLinks",
+      "time"
+    ],
+    "roadLink_types_present": [
+      "go_straight",
+      "turn_left",
+      "turn_right"
+    ]
+  },
+  "flow_fields": {
+    "is_cityflow_top_level_array": true,
+    "n_flows": 2983,
+    "interval": 1.0,
+    "start_time_range": [
+      0.0,
+      3599.0
+    ],
+    "horizon_seconds": 3600.0,
+    "unique_routes": 534,
+    "route_len_min": 2,
+    "route_len_max": 16,
+    "vehicle_fields": [
+      "headwayTime",
+      "length",
+      "maxNegAcc",
+      "maxPosAcc",
+      "maxSpeed",
+      "minGap",
+      "usualNegAcc",
+      "usualPosAcc",
+      "width"
+    ]
+  },
+  "signal_plan_fields": {
+    "example_file": "signal_inter_intersection_1_1.txt",
+    "format": "time,phaseIndex 逐行",
+    "n_lines": 360,
+    "t_end": 3595.0,
+    "phases_used": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "cycle_seconds": 15.0,
+    "green_durations": {
+      "1": 900.0,
+      "2": 900.0,
+      "3": 900.0,
+      "4": 880.0
+    }
+  },
+  "derived_dims": {
+    "n_intersections": 16,
+    "state_dim_per_intersection": {
+      "intersection_1_1": 69,
+      "intersection_1_2": 69,
+      "intersection_1_3": 69,
+      "intersection_1_4": 69,
+      "intersection_2_1": 69,
+      "intersection_2_2": 69,
+      "intersection_2_3": 69,
+      "intersection_2_4": 69,
+      "intersection_3_1": 69,
+      "intersection_3_2": 69,
+      "intersection_3_3": 69,
+      "intersection_3_4": 69,
+      "intersection_4_1": 69,
+      "intersection_4_2": 69,
+      "intersection_4_3": 69,
+      "intersection_4_4": 69
+    },
+    "state_dim_max": 69,
+    "lane_feature_dim": 5,
+    "lane_feature_names": [
+      "sq",
+      "sv",
+      "seg1",
+      "seg2",
+      "seg3"
+    ],
+    "n_incoming_lanes_per_intersection": {
+      "intersection_1_1": 12,
+      "intersection_1_2": 12,
+      "intersection_1_3": 12,
+      "intersection_1_4": 12,
+      "intersection_2_1": 12,
+      "intersection_2_2": 12,
+      "intersection_2_3": 12,
+      "intersection_2_4": 12,
+      "intersection_3_1": 12,
+      "intersection_3_2": 12,
+      "intersection_3_3": 12,
+      "intersection_3_4": 12,
+      "intersection_4_1": 12,
+      "intersection_4_2": 12,
+      "intersection_4_3": 12,
+      "intersection_4_4": 12
+    },
+    "n_lightphases_per_intersection": {
+      "intersection_1_1": 9,
+      "intersection_1_2": 9,
+      "intersection_1_3": 9,
+      "intersection_1_4": 9,
+      "intersection_2_1": 9,
+      "intersection_2_2": 9,
+      "intersection_2_3": 9,
+      "intersection_2_4": 9,
+      "intersection_3_1": 9,
+      "intersection_3_2": 9,
+      "intersection_3_3": 9,
+      "intersection_3_4": 9,
+      "intersection_4_1": 9,
+      "intersection_4_2": 9,
+      "intersection_4_3": 9,
+      "intersection_4_4": 9
+    },
+    "n_selectable_phases_per_intersection": {
+      "intersection_1_1": 4,
+      "intersection_1_2": 4,
+      "intersection_1_3": 4,
+      "intersection_1_4": 4,
+      "intersection_2_1": 4,
+      "intersection_2_2": 4,
+      "intersection_2_3": 4,
+      "intersection_2_4": 4,
+      "intersection_3_1": 4,
+      "intersection_3_2": 4,
+      "intersection_3_3": 4,
+      "intersection_3_4": 4,
+      "intersection_4_1": 4,
+      "intersection_4_2": 4,
+      "intersection_4_3": 4,
+      "intersection_4_4": 4
+    },
+    "n_selectable_phases_max": 4,
+    "neighbor_degree_max": 4,
+    "n_rel_pos_classes": 4,
+    "n_rel_class_groups": 2,
+    "n_duration_actions": 7,
+    "rel_pos_classes": [
+      [
+        -800.0,
+        0.0
+      ],
+      [
+        0.0,
+        -600.0
+      ],
+      [
+        0.0,
+        600.0
+      ],
+      [
+        800.0,
+        0.0
+      ]
+    ],
+    "rel_class_group": [
+      0,
+      1,
+      1,
+      0
+    ],
+    "incoming_lane_length_range_m": [
+      570.0,
+      785.0
+    ]
+  },
+  "per_intersection": [
+    {
+      "id": "intersection_1_1",
+      "n_incoming_lanes": 12,
+      "n_phases": 9,
+      "selectable_phase_indices": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_dim": 69,
+      "neighbors": [
+        "intersection_1_2",
+        "intersection_2_1"
+      ],
+      "rel_class": {
+        "intersection_1_2": 2,
+        "intersection_2_1": 3
+      }
+    },
+    {
+      "id": "intersection_1_2",
+      "n_incoming_lanes": 12,
+      "n_phases": 9,
+      "selectable_phase_indices": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_dim": 69,
+      "neighbors": [
+        "intersection_1_1",
+        "intersection_1_3",
+        "intersection_2_2"
+      ],
+      "rel_class": {
+        "intersection_1_1": 1,
+        "intersection_1_3": 2,
+        "intersection_2_2": 3
+      }
+    },
+    {
+      "id": "intersection_1_3",
+      "n_incoming_lanes": 12,
+      "n_phases": 9,
+      "selectable_phase_indices": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_dim": 69,
+      "neighbors": [
+        "intersection_1_2",
+        "intersection_1_4",
+        "intersection_2_3"
+      ],
+      "rel_class": {
+        "intersection_1_2": 1,
+        "intersection_1_4": 2,
+        "intersection_2_3": 3
+      }
+    },
+    {
+      "id": "intersection_1_4",
+      "n_incoming_lanes": 12,
+      "n_phases": 9,
+      "selectable_phase_indices": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_dim": 69,
+      "neighbors": [
+        "intersection_1_3",
+        "intersection_2_4"
+      ],
+      "rel_class": {
+        "intersection_1_3": 1,
+        "intersection_2_4": 3
+      }
+    },
+    {
+      "id": "intersection_2_1",
+      "n_incoming_lanes": 12,
+      "n_phases": 9,
+      "selectable_phase_indices": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_dim": 69,
+      "neighbors": [
+        "intersection_1_1",
+        "intersection_2_2",
+        "intersection_3_1"
+      ],
+      "rel_class": {
+        "intersection_1_1": 0,
+        "intersection_2_2": 2,
+        "intersection_3_1": 3
+      }
+    },
+    {
+      "id": "intersection_2_2",
+      "n_incoming_lanes": 12,
+      "n_phases": 9,
+      "selectable_phase_indices": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_dim": 69,
+      "neighbors": [
+        "intersection_1_2",
+        "intersection_2_1",
+        "intersection_2_3",
+        "intersection_3_2"
+      ],
+      "rel_class": {
+        "intersection_1_2": 0,
+        "intersection_2_1": 1,
+        "intersection_2_3": 2,
+        "intersection_3_2": 3
+      }
+    },
+    {
+      "id": "intersection_2_3",
+      "n_incoming_lanes": 12,
+      "n_phases": 9,
+      "selectable_phase_indices": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_dim": 69,
+      "neighbors": [
+        "intersection_1_3",
+        "intersection_2_2",
+        "intersection_2_4",
+        "intersection_3_3"
+      ],
+      "rel_class": {
+        "intersection_1_3": 0,
+        "intersection_2_2": 1,
+        "intersection_2_4": 2,
+        "intersection_3_3": 3
+      }
+    },
+    {
+      "id": "intersection_2_4",
+      "n_incoming_lanes": 12,
+      "n_phases": 9,
+      "selectable_phase_indices": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_dim": 69,
+      "neighbors": [
+        "intersection_1_4",
+        "intersection_2_3",
+        "intersection_3_4"
+      ],
+      "rel_class": {
+        "intersection_1_4": 0,
+        "intersection_2_3": 1,
+        "intersection_3_4": 3
+      }
+    },
+    {
+      "id": "intersection_3_1",
+      "n_incoming_lanes": 12,
+      "n_phases": 9,
+      "selectable_phase_indices": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_dim": 69,
+      "neighbors": [
+        "intersection_2_1",
+        "intersection_3_2",
+        "intersection_4_1"
+      ],
+      "rel_class": {
+        "intersection_2_1": 0,
+        "intersection_3_2": 2,
+        "intersection_4_1": 3
+      }
+    },
+    {
+      "id": "intersection_3_2",
+      "n_incoming_lanes": 12,
+      "n_phases": 9,
+      "selectable_phase_indices": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_dim": 69,
+      "neighbors": [
+        "intersection_2_2",
+        "intersection_3_1",
+        "intersection_3_3",
+        "intersection_4_2"
+      ],
+      "rel_class": {
+        "intersection_2_2": 0,
+        "intersection_3_1": 1,
+        "intersection_3_3": 2,
+        "intersection_4_2": 3
+      }
+    },
+    {
+      "id": "intersection_3_3",
+      "n_incoming_lanes": 12,
+      "n_phases": 9,
+      "selectable_phase_indices": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_dim": 69,
+      "neighbors": [
+        "intersection_2_3",
+        "intersection_3_2",
+        "intersection_3_4",
+        "intersection_4_3"
+      ],
+      "rel_class": {
+        "intersection_2_3": 0,
+        "intersection_3_2": 1,
+        "intersection_3_4": 2,
+        "intersection_4_3": 3
+      }
+    },
+    {
+      "id": "intersection_3_4",
+      "n_incoming_lanes": 12,
+      "n_phases": 9,
+      "selectable_phase_indices": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_dim": 69,
+      "neighbors": [
+        "intersection_2_4",
+        "intersection_3_3",
+        "intersection_4_4"
+      ],
+      "rel_class": {
+        "intersection_2_4": 0,
+        "intersection_3_3": 1,
+        "intersection_4_4": 3
+      }
+    },
+    {
+      "id": "intersection_4_1",
+      "n_incoming_lanes": 12,
+      "n_phases": 9,
+      "selectable_phase_indices": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_dim": 69,
+      "neighbors": [
+        "intersection_3_1",
+        "intersection_4_2"
+      ],
+      "rel_class": {
+        "intersection_3_1": 0,
+        "intersection_4_2": 2
+      }
+    },
+    {
+      "id": "intersection_4_2",
+      "n_incoming_lanes": 12,
+      "n_phases": 9,
+      "selectable_phase_indices": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_dim": 69,
+      "neighbors": [
+        "intersection_3_2",
+        "intersection_4_1",
+        "intersection_4_3"
+      ],
+      "rel_class": {
+        "intersection_3_2": 0,
+        "intersection_4_1": 1,
+        "intersection_4_3": 2
+      }
+    },
+    {
+      "id": "intersection_4_3",
+      "n_incoming_lanes": 12,
+      "n_phases": 9,
+      "selectable_phase_indices": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_dim": 69,
+      "neighbors": [
+        "intersection_3_3",
+        "intersection_4_2",
+        "intersection_4_4"
+      ],
+      "rel_class": {
+        "intersection_3_3": 0,
+        "intersection_4_2": 1,
+        "intersection_4_4": 2
+      }
+    },
+    {
+      "id": "intersection_4_4",
+      "n_incoming_lanes": 12,
+      "n_phases": 9,
+      "selectable_phase_indices": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "state_dim": 69,
+      "neighbors": [
+        "intersection_3_4",
+        "intersection_4_3"
+      ],
+      "rel_class": {
+        "intersection_3_4": 0,
+        "intersection_4_3": 1
+      }
+    }
+  ],
+  "action_mask_source": "signal_plan",
+  "read_only_notice": "数据目录 E:\\project-study\\project1-LLM_traffic\\RL-2\\data 全程只读：本工程不写入、不生成、不覆写其中任何文件。"
+}

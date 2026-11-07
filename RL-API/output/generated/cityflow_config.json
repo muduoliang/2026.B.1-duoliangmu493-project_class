@@ -1,0 +1,10 @@
+{
+  "interval": 1.0,
+  "rlTrafficLight": true,
+  "seed": 20240501,
+  "dir": "",
+  "roadnetFile": "/home/mdy493/CityFlow/RL-Web/runs/20261107-115627-282e8e/data/roadnet_builtin.json",
+  "flowFile": "/home/mdy493/CityFlow/RL-Web/runs/20261107-115627-282e8e/data/flow_uploaded.json",
+  "saveReplay": false,
+  "laneChange": false
+}

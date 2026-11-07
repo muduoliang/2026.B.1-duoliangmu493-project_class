@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>交通信号配时 · LLM + RL 本地调试台</title>
+<!--
+  单页前端（无框架、无外部依赖，可离线使用）
+  数据来源：本目录同级 app.py 提供的本地接口
+    GET  /api/health  环境自检
+    POST /api/config  保存 API Key（只存后端内存，前端只拿到掩码）
+    POST /api/run     SSE 五步链路
+    POST /api/chat    SSE 追问
+  安全说明：API Key 输入框只把内容 POST 给后端，前端不回读、不缓存、不打印。
+-->
+<style>
+  :root {
+    --bg: #f5f7fa; --card: #ffffff; --line: #e3e8ef; --ink: #1f2937; --sub: #667085;
+    --accent: #2563eb; --ok: #059669; --warn: #d97706; --bad: #dc2626;
+    --chip: #eef2ff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 14px/1.6 -apple-system, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+  }
+  header {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 14px 20px; background: var(--card); border-bottom: 1px solid var(--line);
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 650; }
+  header .sub { color: var(--sub); font-size: 12px; }
+  .spacer { flex: 1; }
+  .badge {
+    font-size: 12px; padding: 3px 9px; border-radius: 999px;
+    background: var(--chip); color: var(--accent); border: 1px solid #dbe3ff; white-space: nowrap;
+  }
+  .badge.ok { background: #ecfdf5; color: var(--ok); border-color: #bbf7d0; }
+  .badge.bad { background: #fef2f2; color: var(--bad); border-color: #fecaca; }
+  main {
+    display: grid; grid-template-columns: 372px minmax(0, 1fr); gap: 16px;
+    padding: 16px 20px 40px; align-items: start;
+  }
+  @media (max-width: 980px) { main { grid-template-columns: 1fr; } }
+  .col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px; box-shadow: 0 1px 2px rgba(16,24,40,.04);
+  }
+  .card h2 {
+    font-size: 13px; margin: 0 0 10px; font-weight: 650; color: var(--ink);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card h2 .no {
+    width: 18px; height: 18px; border-radius: 6px; background: var(--chip); color: var(--accent);
+    font-size: 11px; display: grid; place-items: center; font-weight: 700;
+  }
+  label.field { display: block; font-size: 12px; color: var(--sub); margin: 8px 0 4px; }
+  input[type=text], input[type=password], input[type=number], select, textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px;
+    font: inherit; color: var(--ink); background: #fff; outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px #eff4ff; }
+  input[readonly] { background: #f9fafb; color: var(--sub); }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .row > * { min-width: 0; }
+  button {
+    font: inherit; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line);
+    background: #fff; color: var(--ink); cursor: pointer; white-space: nowrap;
+  }
+  button:hover { border-color: #cbd5e1; background: #fbfdff; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  button.primary:hover { background: #1d4ed8; }
+  button:disabled { opacity: .55; cursor: not-allowed; }
+  button.mini { padding: 4px 8px; font-size: 12px; }
+  .hint { font-size: 11.5px; color: var(--sub); margin-top: 6px; }
+  .drop {
+    border: 1px dashed #cbd5e1; border-radius: 10px; padding: 10px; text-align: center;
+    background: #fcfdff; cursor: pointer; font-size: 12.5px; color: var(--sub);
+  }
+  .drop:hover { border-color: var(--accent); color: var(--accent); }
+  .drop.filled { border-style: solid; border-color: #bbf7d0; background: #f6fef9; color: var(--ok); }
+  .files { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .files li {
+    display: flex; align-items: center; gap: 8px; font-size: 12px;
+    background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px;
+  }
+  .files li .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .files li .kb { color: var(--sub); font-size: 11px; }
+  .files li .x { cursor: pointer; color: var(--sub); border: 0; background: none; padding: 0 2px; font-size: 14px; }
+  .files li .x:hover { color: var(--bad); }
+  /* 五步进度 */
+  .steps { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .step {
+    flex: 1 1 140px; border: 1px solid var(--line); border-radius: 10px; padding: 7px 9px;
+    font-size: 12px; color: var(--sub); background: #fbfcfe; transition: .15s;
+  }
+  .step .t { font-weight: 600; color: var(--ink); font-size: 12px; display: block; }
+  .step.run { border-color: #bfdbfe; background: #eff6ff; }
+  .step.run .t { color: var(--accent); }
+  .step.done { border-color: #bbf7d0; background: #f0fdf4; }
+  .step.done .t { color: var(--ok); }
+  .stream {
+    height: 132px; overflow: auto; background: #0f172a; color: #dbeafe; border-radius: 10px;
+    padding: 10px 12px; font: 12px/1.65 ui-monospace, Consolas, "Courier New", monospace;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .stream .ln { display: block; }
+  .stream .ln.dim { color: #8fa6c9; }
+  .stream .ln.err { color: #fca5a5; }
+  .stream .ln.tok { color: #86efac; }
+  /* 结果 */
+  .scores { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  @media (max-width: 620px) { .scores { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .sc { border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: #fcfdff; }
+  .sc .k { font-size: 11.5px; color: var(--sub); }
+  .sc .v { font-size: 24px; font-weight: 700; letter-spacing: -.5px; }
+  .sc.big .v { font-size: 30px; color: var(--accent); }
+  .sc .u { font-size: 11px; color: var(--sub); margin-left: 3px; font-weight: 400; }
+  .verdict {
+    margin-top: 10px; padding: 9px 11px; border-radius: 10px; background: #f8fafc;
+    border-left: 3px solid var(--accent); font-size: 13px;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #f1f5f9; }
+  th { color: var(--sub); font-weight: 600; font-size: 11.5px; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .tag { font-size: 11px; padding: 1px 6px; border-radius: 6px; background: var(--chip); color: var(--accent); }
+  .tag.g { background: #ecfdf5; color: var(--ok); }
+  .tag.r { background: #fef2f2; color: var(--bad); }
+  .tag.y { background: #fffbeb; color: var(--warn); }
+  .grp { padding: 7px 9px; border: 1px solid var(--line); border-radius: 9px; margin-bottom: 6px; background: #fcfdff; }
+  .grp .ph { font-size: 12.5px; }
+  .grp .ids { font-size: 11.5px; color: var(--sub); margin-top: 2px; }
+  /* 韦伯斯特配时表：每路口一张小表 */
+  .wb-sum { font-size: 11.5px; color: var(--sub); margin: 2px 0 6px; }
+  .note { font-size: 11.5px; color: var(--sub); margin: 6px 0 0; }
+  table.ph-table { margin-top: 4px; }
+  table.ph-table th, table.ph-table td { padding: 3px 8px; font-size: 12px; }
+  ul.adv { margin: 6px 0 0; padding-left: 18px; font-size: 13px; }
+  ul.adv li { margin: 3px 0; }
+  details { margin-top: 10px; }
+  details summary { cursor: pointer; font-size: 12px; color: var(--sub); }
+  details .body { font-size: 12px; color: var(--sub); margin-top: 6px; white-space: pre-wrap; word-break: break-word; }
+  .empty { color: var(--sub); font-size: 12.5px; padding: 8px 0; }
+  .chat { display: flex; flex-direction: column; gap: 8px; }
+  .chat .ans { font-size: 13px; white-space: pre-wrap; min-height: 20px; }
+  .chat .q { font-size: 12.5px; color: var(--sub); }
+  .chat .q b { color: var(--ink); font-weight: 600; }
+</style>
+</head>
+<body>
+<header>
+  <h1>交通信号配时 · LLM + RL 本地调试台</h1>
+  <span class="sub">本地运行 · API Key 只在后端</span>
+  <span class="spacer"></span>
+  <span class="badge" id="envBadge">环境自检中…</span>
+  <span class="badge" id="keyBadge">未配置 Key</span>
+</header>
+
+<main>
+  <!-- ============ 左栏：配置 / 文件 / 参数 ============ -->
+  <div class="col">
+    <section class="card">
+      <h2><span class="no">1</span>配置（仅后端持有）</h2>
+      <label class="field" for="key">DeepSeek API Key</label>
+      <div class="row">
+        <input id="key" type="password" placeholder="sk-..." autocomplete="off" spellcheck="false" />
+        <button class="primary" id="saveKey">保存</button>
+      </div>
+      <label class="field" for="model">模型（固定）</label>
+      <input id="model" type="text" value="deepseek-chat" readonly />
+      <div class="hint">Key 提交后只存在后端进程内存里，页面只显示掩码；刷新页面即需重新输入。</div>
+      <div class="row" style="margin-top:8px">
+        <span class="badge" id="keyState">未配置</span>
+        <span class="spacer"></span>
+        <button class="mini" id="clearKey">清除 Key</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="no">2</span>数据文件（.json / .csv，可单选也可同时）</h2>
+      <div class="drop" id="dropJson">＋ 选择 .json（路网 / 车流，可多选）</div>
+      <input type="file" id="fileJson" accept=".json,application/json" multiple hidden />
+      <div class="drop" id="dropCsv" style="margin-top:8px">＋ 选择 .csv（车流表 / 路段需求表，可多选）</div>
+      <input type="file" id="fileCsv" accept=".csv,text/csv" multiple hidden />
+      <ul class="files" id="fileList"></ul>
+      <div class="hint">都不选时使用内置示例路网与车流（RL-API/data）。后端会按内容自动识别类型并转换。</div>
+    </section>
+
+    <section class="card">
+      <h2><span class="no">3</span>演示参数</h2>
+      <div class="row">
+        <div style="flex:1">
+          <label class="field" for="episode">演示仿真时长</label>
+          <select id="episode">
+            <option value="120">120 秒</option>
+            <option value="300">300 秒</option>
+            <option value="600" selected>600 秒</option>
+            <option value="900">900 秒</option>
+          </select>
+        </div>
+        <div style="flex:1">
+          <label class="field" for="seed">随机种子</label>
+          <input id="seed" type="number" value="2024" step="1" />
+        </div>
+      </div>
+      <label class="field" style="display:flex;gap:6px;align-items:center;margin-top:10px">
+        <input type="checkbox" id="withQ" checked style="width:auto" />
+        <span>计入动作质量分（冻结网络 Q 值对齐）</span>
+      </label>
+      <div class="hint">时长越短越快，指标分辨率也越低；3600 秒为上限。低于 300 秒常无车辆完成行程，ATT 会自动不计入。</div>
+      <div class="row" style="margin-top:12px">
+        <button class="primary" id="runBtn" style="flex:1">开始运行</button>
+        <button id="stopBtn" disabled>中断</button>
+      </div>
+      <div class="hint">链路：①解析文件 → ②生成方案 → ③数据转换 → ④RL 打分 → ⑤优化建议</div>
+    </section>
+  </div>
+
+  <!-- ============ 右栏：进度 / 结果 / 追问 ============ -->
+  <div class="col">
+    <section class="card">
+      <h2>运行进度 <span class="spacer"></span><span class="badge" id="runState">待运行</span></h2>
+      <div class="steps" id="steps"></div>
+      <div class="stream" id="stream"><span class="ln dim">就绪。配置好 Key（不配也可跑离线对照）后点「开始运行」。</span></div>
+    </section>
+
+    <section class="card">
+      <h2>结果 <span class="spacer"></span>
+        <button class="mini" id="copyBtn" disabled>复制结果</button>
+      </h2>
+      <div id="resultBox"><div class="empty">还没有结果。</div></div>
+    </section>
+
+    <section class="card">
+      <h2>追问（流式）</h2>
+      <div class="chat">
+        <div class="q" id="lastQ"></div>
+        <div class="ans" id="answer" style="color:var(--sub)">可对本次打分/方案提问，例如“为什么 1_4 口排队最高？”</div>
+        <div class="row">
+          <input id="chatInput" type="text" placeholder="输入问题，回车发送" />
+          <button class="primary" id="chatBtn">发送</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+"use strict";
+/* ============================ 状态 ============================ */
+const state = {
+  files: [],          // [{name, content}]
+  lastResult: null,
+  running: false,
+  abort: null,
+  chatHistory: [],
+  steps: [
+    { n: 1, t: "解析文件", d: "LLM 读取内容" },
+    { n: 2, t: "生成方案", d: "LLM 配时" },
+    { n: 3, t: "数据转换", d: "→ RL 输入" },
+    { n: 4, t: "RL 打分", d: "指标 + Q 值" },
+    { n: 5, t: "优化建议", d: "精简输出" }
+  ]
+};
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => (
+  { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const num = (v, d) => (v === null || v === undefined || Number.isNaN(Number(v)))
+  ? "—" : Number(v).toFixed(d === undefined ? 1 : d);
+
+/* ============================ 通用：POST + SSE 流式读取 ============================ */
+async function postStream(url, body, onEvent, signal) {
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body || {}),
+    signal: signal
+  });
+  if (!resp.ok) throw new Error("HTTP " + resp.status);
+  if (!resp.body) throw new Error("浏览器不支持流式响应");
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder("utf-8");
+  let buf = "";
+  const flush = (chunk) => {
+    for (const line of chunk.split("\n")) {
+      const s = line.replace(/\r$/, "");
+      if (!s.startsWith("data:")) continue;
+      const payload = s.slice(5).trim();
+      if (!payload) continue;
+      try { onEvent(JSON.parse(payload)); } catch (e) { /* 忽略不完整帧 */ }
+    }
+  };
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    let i;
+    while ((i = buf.indexOf("\n\n")) >= 0) {
+      flush(buf.slice(0, i));
+      buf = buf.slice(i + 2);
+    }
+  }
+  buf += decoder.decode();
+  if (buf.trim()) flush(buf);
+}
+
+/* ============================ 日志区 ============================ */
+function logLine(text, cls) {
+  const box = $("stream");
+  const span = document.createElement("span");
+  span.className = "ln" + (cls ? " " + cls : "");
+  span.textContent = text;
+  box.appendChild(span);
+  box.scrollTop = box.scrollHeight;
+}
+function setSteps(current, doneUpTo) {
+  $("steps").innerHTML = state.steps.map((s) => {
+    let cls = "step";
+    if (s.n <= (doneUpTo || 0)) cls += " done";
+    else if (s.n === current) cls += " run";
+    return '<div class="' + cls + '"><span class="t">' + s.n + ". " + s.t +
+      '</span><span class="d">' + s.d + "</span></div>";
+  }).join("");
+}
+setSteps(0, 0);
+
+/* ============================ 环境自检 ============================ */
+async function loadHealth() {
+  try {
+    const r = await fetch("/api/health");
+    const h = await r.json();
+    const rl = h.rl || {};
+    const bits = [];
+    bits.push(rl.torch ? "torch " + rl.torch : "缺 torch");
+    bits.push(rl.cityflow ? "cityflow" : "离线引擎");
+    $("envBadge").textContent = (h.ok ? "环境就绪 · " : "环境缺依赖 · ") + bits.join(" · ");
+    $("envBadge").className = "badge " + (h.ok ? "ok" : "bad");
+    $("envBadge").title = JSON.stringify(rl, null, 2);
+    applyConfig(h.config || {});
+  } catch (e) {
+    $("envBadge").textContent = "无法连接后端";
+    $("envBadge").className = "badge bad";
+  }
+}
+function applyConfig(cfg) {
+  const has = !!cfg.has_key;
+  $("keyState").textContent = has ? "已保存 " + (cfg.masked || "") : "未配置";
+  $("keyState").className = "badge " + (has ? "ok" : "");
+  $("keyBadge").textContent = has ? "Key " + (cfg.masked || "已保存") : "未配置 Key";
+  $("keyBadge").className = "badge " + (has ? "ok" : "bad");
+  if (cfg.model) $("model").value = cfg.model;
+}
+
+/* ============================ 配置 ============================ */
+$("saveKey").onclick = async () => {
+  const key = $("key").value.trim();
+  if (!key) { alert("请先填写 API Key"); return; }
+  if (!key.startsWith("sk-")) {
+    if (!confirm("Key 通常以 sk- 开头，仍然保存？")) return;
+  }
+  const r = await fetch("/api/config", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ api_key: key, model: "deepseek-chat" })
+  });
+  const j = await r.json();
+  $("key").value = "";                       // 输入框不留存
+  applyConfig((j && j.config) || {});
+  logLine("[配置] Key 已保存到后端内存：" + ((j.config || {}).masked || ""), "dim");
+};
+$("clearKey").onclick = async () => {
+  const r = await fetch("/api/config", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ api_key: "" })
+  });
+  const j = await r.json();
+  applyConfig((j && j.config) || {});
+  logLine("[配置] 已清除后端 Key", "dim");
+};
+$("key").addEventListener("keydown", (e) => { if (e.key === "Enter") $("saveKey").click(); });
+
+/* ============================ 文件选择 ============================ */
+function pickFiles(kind) {
+  const input = kind === "json" ? $("fileJson") : $("fileCsv");
+  input.value = "";
+  input.click();
+}
+$("dropJson").onclick = () => pickFiles("json");
+$("dropCsv").onclick = () => pickFiles("csv");
+$("fileJson").onchange = () => addFiles($("fileJson").files);
+$("fileCsv").onchange = () => addFiles($("fileCsv").files);
+
+function addFiles(list) {
+  const arr = Array.prototype.slice.call(list || []);
+  let pending = arr.length;
+  if (!pending) return;
+  arr.forEach((f) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = String(reader.result || "");
+      state.files = state.files.filter((x) => x.name !== f.name);
+      state.files.push({ name: f.name, content: text });
+      renderFiles();
+      if (--pending === 0) logLine("[文件] 已载入 " + arr.length + " 个文件", "dim");
+    };
+    reader.onerror = () => { if (--pending === 0) renderFiles(); };
+    reader.readAsText(f, "utf-8");
+  });
+}
+function renderFiles() {
+  const box = $("fileList");
+  box.innerHTML = state.files.map((f, i) =>
+    '<li><span class="nm" title="' + esc(f.name) + '">' + esc(f.name) + "</span>" +
+    '<span class="kb">' + (f.content.length / 1024).toFixed(1) + " KB</span>" +
+    '<button class="x" data-i="' + i + '" title="移除">×</button></li>').join("");
+  box.querySelectorAll("button.x").forEach((b) => {
+    b.onclick = () => { state.files.splice(Number(b.dataset.i), 1); renderFiles(); };
+  });
+  $("dropJson").classList.toggle("filled", state.files.some((f) => /\.json$/i.test(f.name)));
+  $("dropCsv").classList.toggle("filled", state.files.some((f) => /\.csv$/i.test(f.name)));
+}
+
+/* ============================ 运行五步链路 ============================ */
+$("runBtn").onclick = () => runPipeline();
+$("stopBtn").onclick = () => { if (state.abort) state.abort.abort(); };
+
+async function runPipeline() {
+  if (state.running) return;
+  state.running = true;
+  state.abort = new AbortController();
+  $("runBtn").disabled = true;
+  $("stopBtn").disabled = false;
+  $("copyBtn").disabled = true;
+  $("stream").innerHTML = "";
+  $("resultBox").innerHTML = '<div class="empty">运行中…</div>';
+  $("runState").textContent = "运行中";
+  $("runState").className = "badge";
+  setSteps(1, 0);
+
+  const body = {
+    files: state.files,
+    options: {
+      episode_seconds: Number($("episode").value),
+      seed: Number($("seed").value) || 2024,
+      with_q: $("withQ").checked
+    }
+  };
+  let lastStage = 0;
+  try {
+    await postStream("/api/run", body, (ev) => {
+      switch (ev.type) {
+        case "stage": {
+          lastStage = Math.max(lastStage, ev.stage || 0);
+          if (ev.status === "start") {
+            setSteps(ev.stage, ev.stage - 1);
+            logLine("[第" + ev.stage + "步] " + (ev.message || "") + " …");
+          } else {
+            setSteps(lastStage + 1, ev.stage);
+            logLine("[第" + ev.stage + "步] " + (ev.message || "完成"), "dim");
+          }
+          break;
+        }
+        case "log":
+          logLine("  · " + (ev.message || ""), "dim");
+          break;
+        case "token":
+          logLine((ev.content || "").replace(/\n$/, ""), "tok");
+          break;
+        case "progress":
+          if (ev.name === "plan_arm_progress") {
+            $("runState").textContent = "打分 " + Math.round((ev.value || 0) * 100) + "%";
+          }
+          break;
+        case "result":
+          renderResult(ev.data || {});
+          break;
+        case "done":
+          logLine("[完成] 用时 " + num((state.lastResult || {}).elapsed_seconds, 2) + "s", "dim");
+          break;
+        case "error":
+          logLine("[错误] " + (ev.message || "未知错误"), "err");
+          $("runState").textContent = "失败";
+          $("runState").className = "badge bad";
+          break;
+      }
+    }, state.abort.signal);
+    if ($("runState").textContent === "运行中") {
+      $("runState").textContent = "完成";
+      $("runState").className = "badge ok";
+      setSteps(6, 5);
+    }
+  } catch (e) {
+    if (e && e.name === "AbortError") {
+      logLine("[中断] 已取消本次运行", "err");
+      $("runState").textContent = "已中断";
+      $("runState").className = "badge bad";
+    } else {
+      logLine("[错误] " + (e && e.message ? e.message : e), "err");
+      $("runState").textContent = "失败";
+      $("runState").className = "badge bad";
+    }
+  } finally {
+    state.running = false;
+    $("runBtn").disabled = false;
+    $("stopBtn").disabled = true;
+    state.abort = null;
+  }
+}
+
+/* ============================ 结果渲染（精简） ============================ */
+function gradeOf(total) {
+  if (total >= 60) return { t: "优于基线", c: "g" };
+  if (total >= 50) return { t: "接近基线", c: "y" };
+  return { t: "弱于基线", c: "r" };
+}
+
+function planGroups(used) {
+  const map = new Map();
+  Object.keys(used || {}).forEach((iid) => {
+    const item = used[iid] || {};
+    const phases = item.phases || [];
+    const sig = phases.map((p) => p.phase_slot + "@" + p.duration).join(">");
+    if (!map.has(sig)) map.set(sig, { item: item, ids: [] });
+    map.get(sig).ids.push(iid);
+  });
+  return Array.from(map.values()).sort((a, b) => b.ids.length - a.ids.length);
+}
+
+function renderResult(r) {
+  state.lastResult = r;
+  $("copyBtn").disabled = false;
+  const sc = r.score || {};
+  const detail = sc.detail || {};
+  const grade = gradeOf(sc.total == null ? 0 : sc.total);
+
+  /* 1) 分数 */
+  let html = '<div class="scores">' +
+    '<div class="sc big"><div class="k">综合得分</div><div class="v">' + num(sc.total, 1) +
+    '<span class="u">/100</span></div><span class="tag ' + grade.c + '">' + grade.t + "</span></div>" +
+    '<div class="sc"><div class="k">仿真指标分</div><div class="v">' + num(sc.sim, 1) +
+    '<span class="u">/100</span></div><div class="k">权重 60%</div></div>' +
+    '<div class="sc"><div class="k">动作质量分</div><div class="v">' + num(sc.q, 1) +
+    '<span class="u">/100</span></div><div class="k">权重 40%</div></div>' +
+    '<div class="sc"><div class="k">演示仿真</div><div class="v">' + num(r.episode_seconds, 0) +
+    '<span class="u">s</span></div><div class="k">' + esc(r.engine_kind || "-") + "</div></div>" +
+    "</div>";
+  if (r.verdict) html += '<div class="verdict">' + esc(r.verdict) + "</div>";
+
+  /* 2) 指标对照（只保留指标 / 方案 / 基线 / 相对差异 四列） */
+  html += "<h2 style=\"margin-top:14px\">指标对照（方案 vs RL 基线）</h2><table><tr>" +
+    "<th>指标</th><th class=\"num\">方案</th><th class=\"num\">RL 基线</th>" +
+    "<th class=\"num\">相对差异</th></tr>";
+  const order = ["ATT", "AWT", "AQL"];
+  order.concat(Object.keys(detail).filter((k) => order.indexOf(k) < 0)).forEach((k) => {
+    const d = detail[k];
+    if (!d) return;
+    const diff = (d.diff_pct == null || d.plan == null)
+      ? "—"
+      : (d.diff_pct > 0 ? "+" : "") + num(d.diff_pct, 1) + "%";
+    html += "<tr><td>" + esc(d.label || k) + " <span class=\"tag\">" + esc(d.unit || "") +
+      "</span></td><td class=\"num\">" + num(d.plan, 2) + "</td><td class=\"num\">" +
+      num(d.rl, 2) + "</td><td class=\"num\">" + diff + "</td></tr>";
+  });
+  html += "</table>";
+
+  /* 3) 配时方案：韦伯斯特法，每个路口分开展示（周期/绿/黄/红/绿信比） */
+  const plan = r.plan || {};
+  const wb = r.webster || null;
+  const srcTag = plan.source === "llm" ? "LLM 生成" : (plan.source === "webster" ? "韦伯斯特法" : "内置对照");
+  html += '<h2 style="margin-top:14px">配时方案 <span class="tag">' + srcTag + "</span>" +
+    '<span class="tag">' + (plan.intersections || 0) + " 个路口</span></h2>";
+
+  function shortId(iid) { return String(iid || "").replace(/^intersection_/, ""); }
+
+  if (wb && (wb.intersections || []).length) {
+    const s = wb.summary || {};
+    const p = wb.params || {};
+    html += '<div class="wb-sum">周期 ' + num(s.cycle_min, 1) + "~" + num(s.cycle_max, 1) +
+      "s（均值 " + num(s.cycle_mean, 1) + "s）｜Y " + num(s.Y_min, 3) + "~" + num(s.Y_max, 3) +
+      "｜黄灯 " + num(p.yellow_seconds, 0) + "s｜单相位损失 " + num(p.lost_per_phase, 0) + "s" +
+      "｜饱和流量 " + num(p.saturation_flow_per_lane, 0) + " veh/h/车道</div>";
+    wb.intersections.forEach((row) => {
+      let tag = "";
+      if (row.clamped === "min") tag = ' <span class="tag y">C0&lt;60s 取下限 60s</span>';
+      else if (row.clamped === "max") tag = ' <span class="tag y">C0&gt;120s 取上限 120s</span>';
+      else if (row.clamped === "saturated") tag = ' <span class="tag r">过饱和 取上限 120s</span>';
+      html += '<div class="grp"><div class="ph">路口 ' + esc(shortId(row.intersection_id)) +
+        "｜周期 " + num(row.cycle_seconds, 1) + "s" + tag +
+        "｜Y=" + num(row.Y, 3) + "｜L=" + num(row.L_seconds, 1) + "s" +
+        (row.c0_seconds == null ? "" : "｜C0=" + num(row.c0_seconds, 1) + "s") + "</div>" +
+        '<table class="ph-table"><tr><th>相位</th><th>放行流向</th>' +
+        '<th class="num">绿灯 s</th><th class="num">黄灯 s</th>' +
+        '<th class="num">红灯 s</th><th class="num">绿信比</th></tr>';
+      (row.phases || []).forEach((ph) => {
+        const flows = (ph.flows || []).join("、") || "—";
+        html += "<tr><td>相位" + esc(ph.light_phase == null ? ph.slot : ph.light_phase) +
+          "</td><td>" + esc(flows) + '</td><td class="num">' + num(ph.green, 1) +
+          '</td><td class="num">' + num(ph.yellow, 1) + '</td><td class="num">' + num(ph.red, 1) +
+          '</td><td class="num">' + num(ph.green_ratio, 3) + "</td></tr>";
+      });
+      html += "</table></div>";
+    });
+    html += '<div class="note">韦伯斯特法：C0=(1.5L+5)/(1-Y)，绿灯按流量比分配；' +
+      "受原 RL 时长档位（10~40s）限制，打分仿真时绿灯就近取整，周期以本表为准。</div>";
+  } else if (planGroups(plan.used).length) {
+    planGroups(plan.used).forEach((g) => {
+      const phases = g.item.phases || [];
+      const seq = phases.map((p) => "相位" + (p.light_phase == null ? p.phase_slot : p.light_phase) +
+        " " + p.duration + "s").join(" → ");
+      const ids = g.ids.length <= 3
+        ? g.ids.map(shortId).join("、")
+        : g.ids.length + " 个路口统一";
+      html += '<div class="grp"><div class="ph">' + esc(seq) +
+        ' <span class="tag">周期 ' + (g.item.cycle_seconds || 0) + "s</span></div>" +
+        '<div class="ids">' + esc(ids) + "</div></div>";
+    });
+  } else {
+    html += '<div class="empty">无方案数据</div>';
+  }
+
+  /* 4) 最差路口 */
+  const worst = r.worst_intersections || [];
+  if (worst.length) {
+    html += '<h2 style="margin-top:14px">排队最高路口</h2><table><tr><th>路口</th>' +
+      '<th class="num">方案 AQL</th><th class="num">RL 基线 AQL</th></tr>';
+    worst.forEach((w) => {
+      html += "<tr><td>" + esc(String(w.intersection_id).replace(/^intersection_/, "")) +
+        '</td><td class="num">' + num(w.aql_plan, 2) + '</td><td class="num">' + num(w.aql_rl, 2) + "</td></tr>";
+    });
+    html += "</table>";
+  }
+
+  /* 5) 优化建议（精简） */
+  const advice = (r.advice || "").trim();
+  html += '<h2 style="margin-top:14px">优化建议</h2>';
+  if (!advice) {
+    html += '<div class="empty">无</div>';
+  } else {
+    const items = advice.split(/\n+/).map((s) => s.replace(/^[-*\d.、)\s]+/, "").trim()).filter(Boolean);
+    html += '<ul class="adv">' + items.map((s) => "<li>" + esc(s) + "</li>").join("") + "</ul>";
+  }
+
+  /* 6) 折叠的运行明细 */
+  const conv = r.conversion || {};
+  const q = r.q_stats || {};
+  const info = [
+    "run_id: " + (r.run_id || "-"),
+    "输出目录: " + (r.run_dir || "-"),
+    "引擎: " + (r.engine_kind || "-") + " | 种子: " + ((r.arms || {}).rl || {}).seed,
+    "转换来源: " + JSON.stringify(conv.sources || {}),
+    "输入维度: " + JSON.stringify(conv.dims || {}),
+    "车流: " + JSON.stringify(conv.flow_stats || {}),
+    "Q 值: " + (q.n_eval ? ("样本 " + q.n_eval + "，平均 regret " + num(q.mean_regret, 3)) : "未计算"),
+    "RL 臂指标: " + JSON.stringify(((r.arms || {}).rl || {}).metrics || {}),
+    "方案臂指标: " + JSON.stringify(((r.arms || {}).plan || {}).metrics || {})
+  ];
+  const warns = (r.warnings || []).concat(conv.warnings || []);
+  if (warns.length) info.push("提示:\n- " + warns.join("\n- "));
+  if (r.scoring_note) info.push("打分口径:\n" + r.scoring_note);
+  html += '<details><summary>运行明细 / 打分口径 / 提示（' + (warns.length || 0) + "）</summary>" +
+    '<div class="body">' + esc(info.join("\n")) + "</div></details>";
+
+  $("resultBox").innerHTML = html;
+}
+
+/* ============================ 复制结果 ============================ */
+$("copyBtn").onclick = async () => {
+  const r = state.lastResult;
+  if (!r) return;
+  const sc = r.score || {};
+  const lines = [];
+  lines.push("【交通信号配时 · LLM+RL 结果】");
+  lines.push("综合得分: " + num(sc.total, 1) + "/100（仿真指标分 " + num(sc.sim, 1) +
+    "，动作质量分 " + num(sc.q, 1) + "）");
+  if (r.verdict) lines.push("评价: " + r.verdict);
+  lines.push("");
+  lines.push("指标对照（方案 vs RL 基线）：");
+  const detail = sc.detail || {};
+  Object.keys(detail).forEach((k) => {
+    const d = detail[k];
+    const diff = (d.diff_pct == null || d.plan == null) ? "" :
+      "（" + (d.diff_pct > 0 ? "+" : "") + num(d.diff_pct, 1) + "%）";
+    lines.push("- " + (d.label || k) + ": " + num(d.plan, 2) + " vs " + num(d.rl, 2) + diff);
+  });
+  lines.push("");
+  const wb = r.webster || null;
+  const shortId = (iid) => String(iid || "").replace(/^intersection_/, "");
+  if (wb && (wb.intersections || []).length) {
+    lines.push("配时方案（韦伯斯特法）：");
+    wb.intersections.forEach((row) => {
+      const tag = row.clamped === "min" ? "（C0<60s 取下限）"
+        : row.clamped === "max" ? "（C0>120s 取上限）"
+          : row.clamped === "saturated" ? "（过饱和取上限）" : "";
+      lines.push("- 路口 " + shortId(row.intersection_id) + "：周期 " + num(row.cycle_seconds, 1) +
+        "s，Y=" + num(row.Y, 3) + "，L=" + num(row.L_seconds, 1) + "s" + tag);
+      (row.phases || []).forEach((p) => {
+        lines.push("    相位" + (p.light_phase == null ? p.slot : p.light_phase) +
+          "（" + ((p.flows || []).join("、") || "—") + "）绿 " + num(p.green, 1) +
+          "s / 黄 " + num(p.yellow, 1) + "s / 红 " + num(p.red, 1) +
+          "s / 绿信比 " + num(p.green_ratio, 3));
+      });
+    });
+  } else {
+    lines.push("配时方案：");
+    planGroups((r.plan || {}).used).forEach((g) => {
+      const seq = (g.item.phases || []).map((p) => "相位" + (p.light_phase == null ? p.phase_slot : p.light_phase) +
+        " " + p.duration + "s").join(" → ");
+      const ids = g.ids.length <= 3 ? g.ids.join("、") : g.ids.length + " 个路口统一";
+      lines.push("- " + seq + "（周期 " + (g.item.cycle_seconds || 0) + "s）｜" + ids);
+    });
+  }
+  const worst = r.worst_intersections || [];
+  if (worst.length) {
+    lines.push("");
+    lines.push("排队最高路口：" + worst.map((w) => String(w.intersection_id).replace(/^intersection_/, "") +
+      "=" + num(w.aql_plan, 1)).join("，"));
+  }
+  if ((r.advice || "").trim()) {
+    lines.push("");
+    lines.push("优化建议：");
+    lines.push(r.advice.trim());
+  }
+  const text = lines.join("\n");
+  try {
+    await navigator.clipboard.writeText(text);
+    $("copyBtn").textContent = "已复制";
+    setTimeout(() => { $("copyBtn").textContent = "复制结果"; }, 1400);
+  } catch (e) {
+    const ta = document.createElement("textarea");
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand("copy"); document.body.removeChild(ta);
+    $("copyBtn").textContent = "已复制";
+    setTimeout(() => { $("copyBtn").textContent = "复制结果"; }, 1400);
+  }
+};
+
+/* ============================ 追问（流式） ============================ */
+$("chatBtn").onclick = () => ask();
+$("chatInput").addEventListener("keydown", (e) => { if (e.key === "Enter") ask(); });
+
+async function ask() {
+  const q = $("chatInput").value.trim();
+  if (!q) return;
+  $("chatInput").value = "";
+  $("lastQ").innerHTML = "问：<b>" + esc(q) + "</b>";
+  $("answer").textContent = "";
+  $("answer").style.color = "var(--ink)";
+  $("chatBtn").disabled = true;
+  state.chatHistory.push({ role: "user", content: q });
+  const ctx = contextBrief();
+  let acc = "";
+  try {
+    await postStream("/api/chat", { messages: state.chatHistory, context: ctx }, (ev) => {
+      if (ev.type === "delta") {
+        acc += ev.content || "";
+        $("answer").textContent = acc;
+      } else if (ev.type === "error") {
+        $("answer").textContent = "（错误）" + (ev.message || "");
+      }
+    });
+    if (acc) {
+      state.chatHistory.push({ role: "assistant", content: acc });
+      if (state.chatHistory.length > 20) state.chatHistory = state.chatHistory.slice(-20);
+    }
+  } catch (e) {
+    $("answer").textContent = "（请求失败）" + (e && e.message ? e.message : e);
+  } finally {
+    $("chatBtn").disabled = false;
+  }
+}
+
+function contextBrief() {
+  const r = state.lastResult;
+  if (!r) return "";
+  const sc = r.score || {};
+  const worst = (r.worst_intersections || []).map((w) =>
+    String(w.intersection_id).replace(/^intersection_/, "") + " 方案AQL=" + num(w.aql_plan, 1) +
+    " RL=" + num(w.aql_rl, 1)).join("；");
+  return [
+    "本次运行：仿真 " + num(r.episode_seconds, 0) + "s，引擎 " + (r.engine_kind || "-"),
+    "得分：综合 " + num(sc.total, 1) + "，仿真指标分 " + num(sc.sim, 1) + "，动作质量分 " + num(sc.q, 1),
+    "评价：" + (r.verdict || "-"),
+    "指标：" + Object.keys(sc.detail || {}).map((k) => {
+      const d = sc.detail[k];
+      return (d.label || k) + " 方案" + num(d.plan, 2) + "/RL" + num(d.rl, 2);
+    }).join("；"),
+    "排队最高路口：" + (worst || "-"),
+    "优化建议：" + (r.advice || "-").replace(/\n/g, " / ")
+  ].join("\n");
+}
+
+/* ============================ 启动 ============================ */
+renderFiles();
+loadHealth();
+</script>
+</body>
+</html>

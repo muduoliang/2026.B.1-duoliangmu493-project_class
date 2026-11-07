@@ -1,0 +1,3 @@
+episode,sim_seconds,decisions,epsilon,avg_reward,ATT,AWT,AQL,throughput,loss_mean,grad_updates,replay_size,wall_seconds
+0,600.0,385,1.0,0.0,56.849,0.0,0.0,17184.0,0.03356,2,385,20.19
+1,600.0,389,0.9982,0.0,56.849,0.0,0.0,17184.0,0.02813,4,774,19.85
